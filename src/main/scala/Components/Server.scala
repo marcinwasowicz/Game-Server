@@ -3,12 +3,12 @@ package Components
 import akka.actor.{Actor, PoisonPill, Props}
 
 class Server extends Actor{
-    val simpleListener = context.actorOf(Props(new SimpleListener()))
+    val simpleListener = context.actorOf(Props(new SimpleListener()), "stdin-listener")
 
-    val clientManager = context.actorOf(Props(new ClientManager()), "ClientManager")
+    val clientManager = context.actorOf(Props(new ClientManager()), "client-manager")
 
     def init(): Unit = {
-        simpleListener ! Signal("start")
+        simpleListener ! Start()
         println("Server Correctly initialized")
     }
 
@@ -18,7 +18,7 @@ class Server extends Actor{
     }
 
     override def receive: Receive ={
-        case Signal("Start") =>
+        case Start(_) =>
             init()
         case Signal("close") =>
             shutDown()

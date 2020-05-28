@@ -8,7 +8,7 @@ class SimpleListener extends StdinListener {
         val text: String = StdIn.readLine
         text match {
             case s"login $name"  =>
-                TaggedMessage("login", name)
+                Login(name)
             case _ =>
                 Signal(text)
         }

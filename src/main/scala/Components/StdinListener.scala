@@ -13,7 +13,7 @@ trait StdinListener extends Actor{
     }
 
     override def receive: Receive = {
-        case Signal("start") =>
+        case Start(_) =>
             listenerLoop()
     }
 

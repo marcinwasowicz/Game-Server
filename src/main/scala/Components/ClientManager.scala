@@ -5,30 +5,35 @@ import akka.actor.{Actor, ActorRef}
 import scala.collection.mutable
 
 class ClientManager extends Actor{
-
     val clientDictionary = new mutable.HashMap[String, ActorRef]()
 
-    def listClients(): Unit = clientDictionary.foreach{case (name, _) => println(name)}
+    @Deprecated def listClients(): Unit = clientDictionary.foreach{
+        case (name, _) => println(name)
+    }
 
     def logClientIn(name: String, client: ActorRef): Unit = {
         clientDictionary.contains(name) match {
             case true =>
-                client ! Signal("Log In Failure")
+                client ! LoginFailure(name)
             case _ =>
                 clientDictionary.put(name, client)
-                client ! TaggedMessage("Log In Successful", name)
+                client ! LoginSuccess(name)
         }
     }
 
     def logClientOut(name: String): Unit = clientDictionary.remove(name)
 
     override def receive: Receive = {
-        case TaggedMessage(name, "logout") =>
+        case Logout(name) =>
             logClientOut(name)
-        case TaggedMessage(name, "login") =>
+        case Login(name) =>
             logClientIn(name, sender())
-        case Signal("list") =>
-            listClients()
+        case ListingRequest(name) =>
+            clientDictionary
+              .get(name)
+              .foreach{
+                  _ ! Listing(clientDictionary.keys.toList)
+              }
     }
 
 }
