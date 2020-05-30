@@ -1,6 +1,7 @@
-package Components
+package components.client
 
 import akka.actor.{Actor, ActorSelection}
+import components.common._
 
 class ConnectionManager(clientManager: ActorSelection) extends Actor{
 

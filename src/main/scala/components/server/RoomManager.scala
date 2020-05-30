@@ -1,6 +1,7 @@
-package Components
+package components.server
 
-import akka.actor.{Actor, ActorContext, ActorRef, Props}
+import akka.actor.{Actor, ActorRef, Props}
+import components.common._
 
 import scala.collection.mutable
 import scala.util.Random

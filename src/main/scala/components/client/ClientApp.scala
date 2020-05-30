@@ -1,9 +1,8 @@
-package Components
+package components.client
 
 import akka.actor.{ActorSystem, Props}
 import com.typesafe.config.ConfigFactory
-
-import scala.io.StdIn
+import components.common.Start
 
 object ClientApp extends App {
     val clientConfiguration = ConfigFactory.load.getConfig("ClientConfig")

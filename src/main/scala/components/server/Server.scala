@@ -1,6 +1,7 @@
-package Components
+package components.server
 
 import akka.actor.{Actor, ActorRef, PoisonPill, Props}
+import components.common._
 
 class Server extends Actor{
     val simpleListener: ActorRef = context.actorOf(Props(new SimpleListener()), "stdin-listener")

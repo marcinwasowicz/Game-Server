@@ -1,6 +1,8 @@
-package Components
+package components.client
 
 import akka.actor.{Actor, ActorRef, ActorSelection}
+import components._
+import components.common.{RoomCreated, RoomCreationProblem, RoomCreationRequest, RoomJoinProblem, RoomJoinRequest, RoomJoined, Signal}
 
 class GameManager(name: String, roomManager: ActorSelection) extends Actor {
   var currentRoomId: Option[Int] = None

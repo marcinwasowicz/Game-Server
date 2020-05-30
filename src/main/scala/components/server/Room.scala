@@ -1,6 +1,7 @@
-package Components
+package components.server
 
 import akka.actor.Actor
+import components.common._
 
 import scala.collection.mutable
 
