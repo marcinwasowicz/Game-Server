@@ -1,17 +1,38 @@
 package Components
 
-import akka.actor.{Actor, ActorRef}
+import akka.actor.{Actor, ActorContext, ActorRef, Props}
 
 import scala.collection.mutable
+import scala.util.Random
 
 class RoomManager() extends Actor {
   val roomRefs = mutable.HashMap.empty[Int, ActorRef]
 
-  def processCreateRequest(name: String, sender: ActorRef): Unit = ()
+  def newRoomId: Int = {
+    Option(Random.nextInt)
+      .filter(!roomRefs.contains(_))
+      .getOrElse(newRoomId)
+  }
 
-  def processJoinRequest(name: String, roomId: Int, sender: ActorRef): Unit = ()
+  def processCreateRequest(name: String, sender: ActorRef): Unit = {
+    val roomId = newRoomId
+  }
+
+  def processJoinRequest(roomJoinRequest: RoomJoinRequest)(implicit context: ActorContext): Unit = {
+    println(context.sender.path)
+    roomRefs.get(roomJoinRequest.roomId) match {
+      case Some(roomActor) =>
+//        roomActor.forward(roomJoinRequest)
+        ()
+      case None =>
+        ()
+    }
+  }
 
   override def receive: Receive = {
-    case _ => ()
+    case RoomCreationRequest(name) =>
+      processCreateRequest(name, sender)
+    case msg: RoomJoinRequest =>
+      processJoinRequest(msg)
   }
 }
