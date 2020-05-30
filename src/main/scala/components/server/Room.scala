@@ -10,8 +10,7 @@ class Room(roomId: Int, creatorName: String) extends Actor {
   val maxPlayers = 2
 
   override def receive: Receive = {
-    case RoomJoinRequest(name, reqRoomId) =>
-      println(playersInRoom.size)
+    case RoomJoinRequest(name, _) =>
       if(playersInRoom.size < maxPlayers)
         playersInRoom.contains(name) match {
           case false =>
@@ -22,5 +21,9 @@ class Room(roomId: Int, creatorName: String) extends Actor {
         }
       else
         sender ! RoomJoinProblem(roomId, "Room full")
+    case RoomLeft(name) =>
+      playersInRoom.remove(name)
+    case RoomListingRequest(_) =>
+      sender ! RoomListing(roomId, playersInRoom.toList)
   }
 }

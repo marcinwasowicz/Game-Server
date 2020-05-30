@@ -31,13 +31,9 @@ class Client(clientManager: ActorSelection, roomManager: ActorSelection) extends
     override def receive: Receive = {
         case Start(_) =>
             init()
-        case Signal(s"room join $id") =>
+        case Signal(s"room $command") =>
             doIfLogged{
-                gameManager.foreach(_ ! RoomJoinRequest(name.get, id.toInt))
-            }
-        case Signal("room new") =>
-            doIfLogged{
-                gameManager.foreach(_ ! RoomCreationRequest(name.get))
+                gameManager.foreach(_.forward(Signal(command)))
             }
         case Signal("close") =>
             doIfLogged{
