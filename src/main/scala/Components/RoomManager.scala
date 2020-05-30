@@ -2,6 +2,7 @@ package Components
 
 import akka.actor.{Actor, ActorContext, ActorRef, Props}
 
+import scala.annotation.unused
 import scala.collection.mutable
 import scala.util.Random
 
@@ -14,25 +15,26 @@ class RoomManager() extends Actor {
       .getOrElse(newRoomId)
   }
 
-  def processCreateRequest(name: String, sender: ActorRef): Unit = {
+  def processCreateRequest(name: String): Unit = {
     val roomId = newRoomId
+    roomRefs.addOne(roomId -> ActorRef.noSender)
+    sender ! RoomCreated(roomId)
   }
 
-  def processJoinRequest(roomJoinRequest: RoomJoinRequest)(implicit context: ActorContext): Unit = {
-    println(context.sender.path)
-    roomRefs.get(roomJoinRequest.roomId) match {
+  def processJoinRequest(name: String, roomId: Int): Unit = {
+    roomRefs.get(roomId) match {
       case Some(roomActor) =>
-//        roomActor.forward(roomJoinRequest)
-        ()
+//        roomActor.forward(RoomJoinRequest(name, roomId))
+        sender ! RoomJoined(roomId)
       case None =>
-        ()
+        sender ! RoomJoinProblem(roomId, "Room does not exist")
     }
   }
 
   override def receive: Receive = {
     case RoomCreationRequest(name) =>
-      processCreateRequest(name, sender)
-    case msg: RoomJoinRequest =>
-      processJoinRequest(msg)
+      processCreateRequest(name)
+    case RoomJoinRequest(name, roomId) =>
+      processJoinRequest(name, roomId)
   }
 }

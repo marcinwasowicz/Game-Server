@@ -1,11 +1,12 @@
 package Components
 
-import akka.actor.{Actor, ActorSelection, PoisonPill, Props}
+import akka.actor.{Actor, ActorRef, ActorSelection, PoisonPill, Props}
 
-class Client(clientManager: ActorSelection) extends Actor{
+class Client(clientManager: ActorSelection, roomManager: ActorSelection) extends Actor{
+    val simpleListener: ActorRef = context.actorOf(Props(new SimpleListener()), "stdin-listener")
+    val connectionManager: ActorRef = context.actorOf(Props(new ConnectionManager(clientManager)), "connection-manager")
+    var gameManager: Option[ActorRef] = None
 
-    val simpleListener = context.actorOf(Props(new SimpleListener()), "stdin-listener")
-    val connectionManager = context.actorOf(Props(new ConnectionManager(clientManager)), "connection-manager")
     var name: Option[String] = None
 
     def doAtLogin[A](loggedAction: => A)(notLoggedAction: => A): A ={
@@ -29,6 +30,14 @@ class Client(clientManager: ActorSelection) extends Actor{
     override def receive: Receive = {
         case Start(_) =>
             init()
+        case Signal(s"room join $id") =>
+            doIfLogged{
+                gameManager.foreach(_ ! RoomJoinRequest(name.get, id.toInt))
+            }
+        case Signal("room new") =>
+            doIfLogged{
+                gameManager.foreach(_ ! RoomCreationRequest(name.get))
+            }
         case Signal("close") =>
             doIfLogged{
                 clientManager ! Logout(name.get)
@@ -43,6 +52,7 @@ class Client(clientManager: ActorSelection) extends Actor{
         case Signal("logout") =>
             doAtLogin{
                 connectionManager ! Logout(name.get)
+                gameManager.foreach(context.stop)
             }{
                 println("You are not logged in")
             }
@@ -57,6 +67,7 @@ class Client(clientManager: ActorSelection) extends Actor{
             println("Log in failed")
         case LoginSuccess(acceptedName) =>
             name = Some(acceptedName)
+            gameManager = Some(context.actorOf(Props(new GameManager(acceptedName, roomManager)), "game-manager"))
             println("Successfully logged to server")
     }
 }

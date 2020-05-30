@@ -10,6 +10,7 @@ object ClientApp extends App {
     val serverPort = ConfigFactory.load.getConfig("ServerConfig").getInt("akka.remote.artery.canonical.port")
     val clientSystem = ActorSystem("ClientSystem", clientConfiguration)
     val clientManager = clientSystem.actorSelection(s"akka://ServerSystem@127.0.0.1:$serverPort/user/server/client-manager")
-    val client = clientSystem.actorOf(Props(new Client(clientManager)), "client")
+    val roomManager = clientSystem.actorSelection(s"akka://ServerSystem@127.0.0.1:$serverPort/user/server/room-manager")
+    val client = clientSystem.actorOf(Props(new Client(clientManager, roomManager)), "client")
     client ! Start()
 }

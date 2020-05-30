@@ -26,3 +26,5 @@ final case class RoomCreationRequest(name: String) extends RoomMessage
 final case class RoomJoinRequest(name: String, roomId: Int) extends RoomMessage
 final case class RoomCreated(roomId: Int) extends RoomMessage
 final case class RoomJoined(roomId: Int) extends RoomMessage
+final case class RoomJoinProblem(roomId: Int, msg: String) extends RoomMessage
+final case class RoomCreationProblem(roomId: Int, msg: String) extends RoomMessage

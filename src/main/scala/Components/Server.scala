@@ -1,11 +1,12 @@
 package Components
 
-import akka.actor.{Actor, PoisonPill, Props}
+import akka.actor.{Actor, ActorRef, PoisonPill, Props}
 
 class Server extends Actor{
-    val simpleListener = context.actorOf(Props(new SimpleListener()), "stdin-listener")
+    val simpleListener: ActorRef = context.actorOf(Props(new SimpleListener()), "stdin-listener")
 
-    val clientManager = context.actorOf(Props(new ClientManager()), "client-manager")
+    val clientManager: ActorRef = context.actorOf(Props(new ClientManager()), "client-manager")
+    val roomManager: ActorRef = context.actorOf(Props(new RoomManager()), "room-manager")
 
     def init(): Unit = {
         simpleListener ! Start()
