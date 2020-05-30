@@ -19,7 +19,7 @@ class RoomManager() extends Actor {
 
   def processCreateRequest(name: String): Unit = {
     val roomId = newRoomId
-    val newRoom = context.actorOf(Props(new Room(roomId, name)), s"room-$roomId")
+    val newRoom = context.actorOf(Props(new Room(roomId, name, sender)), s"room-$roomId")
     roomRefs.addOne(roomId -> newRoom)
     sender ! RoomCreated(roomId, newRoom)
   }

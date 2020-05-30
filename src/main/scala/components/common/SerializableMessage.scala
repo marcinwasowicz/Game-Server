@@ -40,3 +40,8 @@ final case class RoomLeft(name: String) extends RoomMessage
 
 final case class RoomListingRequest(roomId: Int) extends RoomMessage
 final case class RoomListing(roomId: Int, logins: List[String]) extends RoomMessage
+
+final case class RoomGameCreationRequest(gameName: String) extends RoomMessage
+final case class RoomGameCreated(gameName: String, gameActor: ActorRef) extends RoomMessage
+
+trait GameMessage extends SerializableMessage

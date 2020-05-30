@@ -1,20 +1,34 @@
 package components.server
 
-import akka.actor.Actor
+import akka.actor.{Actor, ActorRef, Props}
 import components.common._
+import components.game.Game
+import components.game.chat.GameChatServer
 
 import scala.collection.mutable
 
-class Room(roomId: Int, creatorName: String) extends Actor {
-  val playersInRoom: mutable.Set[String] = mutable.Set(creatorName)
+class Room(roomId: Int, creatorName: String, creatorActor: ActorRef) extends Actor {
+  val playersInRoom: mutable.HashMap[String, ActorRef] = mutable.HashMap(creatorName -> creatorActor)
   val maxPlayers = 2
+  var currentGame: Option[ActorRef] = None
+
+  def createGame(gameName: String): Unit = {
+    gameName match{
+      case "chat" =>
+        currentGame = Some(context.actorOf(Props(new GameChatServer(playersInRoom)), s"game-chat-$roomId"))
+        playersInRoom
+          .values
+          .foreach(_ ! RoomGameCreated("chat", currentGame.get))
+      case _ => ()
+    }
+  }
 
   override def receive: Receive = {
     case RoomJoinRequest(name, _) =>
       if(playersInRoom.size < maxPlayers)
         playersInRoom.contains(name) match {
           case false =>
-            playersInRoom += name
+            playersInRoom += name -> sender
             sender ! RoomJoined(roomId, context.self)
           case true =>
             sender ! RoomJoinProblem(roomId, "Player is currently in this room")
@@ -24,6 +38,8 @@ class Room(roomId: Int, creatorName: String) extends Actor {
     case RoomLeft(name) =>
       playersInRoom.remove(name)
     case RoomListingRequest(_) =>
-      sender ! RoomListing(roomId, playersInRoom.toList)
+      sender ! RoomListing(roomId, playersInRoom.keys.toList)
+    case RoomGameCreationRequest(gameName) =>
+      createGame(gameName)
   }
 }

@@ -1,9 +1,10 @@
 package components.client
 
-import akka.actor.{Actor, ActorRef, ActorSelection}
+import akka.actor.{Actor, ActorRef, ActorSelection, Props}
 import akka.pattern.ask
 import akka.util.Timeout
 import components.common._
+import components.game.chat.GameChatClient
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -13,6 +14,8 @@ class GameManager(name: String, roomManager: ActorSelection) extends Actor {
   var currentRoomId: Option[Int] = None
   var currentRoomActor: Option[ActorRef] = None
   implicit val timeout: Timeout = 5.seconds
+
+  var currentGame: Option[ActorRef] = None
 
   def listing(): Unit =
     currentRoomActor.fold{
@@ -55,6 +58,12 @@ class GameManager(name: String, roomManager: ActorSelection) extends Actor {
 
     case Signal("leave") => leaveRoom()
 
+    case Signal(s"game $command") =>
+      command match{
+        case "new chat" => currentRoomActor.foreach{_ ! RoomGameCreationRequest("chat")}
+        case _ => currentGame.foreach(_ ! Signal(command))
+      }
+
     case RoomJoinProblem(_, err) => println(s"Joining failed: $err")
 
     case RoomCreationProblem(_, err) => println(s"Creating room failed: $err")
@@ -71,6 +80,15 @@ class GameManager(name: String, roomManager: ActorSelection) extends Actor {
       currentRoomId = Some(roomId)
       currentRoomActor = Some(roomActor)
 
-    case _ => ()
+    case RoomGameCreated(gameName, gameActor) =>
+      val actorName =  s"game-$gameName-player"
+      gameName match {
+        case "chat" =>
+          println(s"Game $gameName started")
+          currentGame = Some(context.actorOf(Props(new GameChatClient(name, gameActor)), actorName))
+      }
+
+    case msg: GameMessage =>
+      currentGame.foreach(_.forward(msg))
   }
 }
