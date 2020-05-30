@@ -15,9 +15,10 @@ class GameManager(name: String, roomManager: ActorSelection) extends Actor {
       println(s"Joining failed: $err")
     case RoomCreationProblem(_, err) =>
       println(s"Creating room failed: $err")
-    case RoomJoined(roomId) =>
+    case RoomJoined(roomId, roomActor) =>
       println(s"Room $roomId joined")
       currentRoomId = Some(roomId)
+      currentRoomActor = Some(roomActor)
     case RoomCreated(roomId, roomActor) =>
       println(s"Room $roomId created")
       currentRoomId = Some(roomId)
