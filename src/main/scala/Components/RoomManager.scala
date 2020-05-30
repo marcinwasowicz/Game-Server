@@ -2,7 +2,6 @@ package Components
 
 import akka.actor.{Actor, ActorContext, ActorRef, Props}
 
-import scala.annotation.unused
 import scala.collection.mutable
 import scala.util.Random
 
@@ -10,15 +9,16 @@ class RoomManager() extends Actor {
   val roomRefs = mutable.HashMap.empty[Int, ActorRef]
 
   def newRoomId: Int = {
-    Option(Random.nextInt)
+    Option(Random.nextInt(Int.MaxValue))
       .filter(!roomRefs.contains(_))
       .getOrElse(newRoomId)
   }
 
   def processCreateRequest(name: String): Unit = {
     val roomId = newRoomId
-    roomRefs.addOne(roomId -> ActorRef.noSender)
-    sender ! RoomCreated(roomId)
+    val newRoom = context.actorOf(Props(new Room(roomId)), s"room-$roomId")
+    roomRefs.addOne(roomId -> newRoom)
+    sender ! RoomCreated(roomId, newRoom)
   }
 
   def processJoinRequest(name: String, roomId: Int): Unit = {

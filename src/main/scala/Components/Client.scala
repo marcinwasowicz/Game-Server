@@ -57,6 +57,8 @@ class Client(clientManager: ActorSelection, roomManager: ActorSelection) extends
                 println("You are not logged in")
             }
             name = None
+        case msg: Signal =>
+            gameManager.foreach(_ ! msg)
         case Login(login) =>
             doAtLogin{
                 println("You are already logged in")

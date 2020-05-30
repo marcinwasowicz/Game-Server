@@ -3,6 +3,9 @@ package Components
 import akka.actor.{Actor, ActorRef, ActorSelection}
 
 class GameManager(name: String, roomManager: ActorSelection) extends Actor {
+  var currentRoomId: Option[Int] = None
+  var currentRoomActor: Option[ActorRef] = None
+
   override def receive: Receive = {
     case msg: RoomCreationRequest =>
       roomManager ! msg
@@ -14,7 +17,12 @@ class GameManager(name: String, roomManager: ActorSelection) extends Actor {
       println(s"Creating room failed: $err")
     case RoomJoined(roomId) =>
       println(s"Room $roomId joined")
-    case RoomCreated(roomId) =>
+      currentRoomId = Some(roomId)
+    case RoomCreated(roomId, roomActor) =>
       println(s"Room $roomId created")
+      currentRoomId = Some(roomId)
+      currentRoomActor = Some(roomActor)
+    case msg: Signal =>
+      currentRoomActor.foreach(_ ! msg)
   }
 }
