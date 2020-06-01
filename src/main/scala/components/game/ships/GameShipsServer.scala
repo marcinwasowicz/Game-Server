@@ -2,9 +2,8 @@ package components.game.ships
 
 import akka.actor.ActorRef
 
-
 import scala.collection.mutable
-
+import scala.util.Random
 class GameShipsServer() extends GameShips {
 
   val width = 10
@@ -20,8 +19,7 @@ class GameShipsServer() extends GameShips {
   def checkRow(position: (Int, Int), diff: (Int, Int), length: Int, dict: mutable.HashMap[(Int, Int), Ship]): Boolean =
     (0 until length).toList.forall(num => !dict.contains((position._1 + num*diff._1, position._2+num*diff._2)))
 
-  def fillRow(position: (Int, Int), diff: (Int, Int), length: Int, dict: mutable.HashMap[(Int, Int), Ship]): Unit = {
-    var ship: Ship = new Ship(length)
+  def fillRow(position: (Int, Int), diff: (Int, Int), length: Int, dict: mutable.HashMap[(Int, Int), Ship], ship: Ship): Unit = {
     (0 until length).toList.foreach(num => dict.put((position._1 + num*diff._1, position._2+num*diff._2), ship))
   }
 
@@ -31,14 +29,15 @@ class GameShipsServer() extends GameShips {
 
   def tryPosition(position: (Int, Int), length: Int, dict: mutable.HashMap[(Int, Int), Ship]): Boolean = {
     val directions = List((-1, 0), (1, 0), (0, 1), (0, -1)).filter(direction => checkBorders(position, length, direction))
-    directions.foldLeft(false)((acc, direction) => if(!acc && checkRow(position, direction, length, dict)){
-      fillRow(position, direction, length, dict)
-      !acc
-    } else acc)
+    directions.foldLeft(false)((acc, direction) =>
+      if(!acc && checkRow(position, direction, length, dict)){
+        fillRow(position, direction, length, dict, new Ship(length))
+        !acc
+      } else acc)
   }
 
   def initializeBoard(board: mutable.HashMap[(Int, Int), Ship]): Unit = {
-    val randomGenerator = scala.util.Random
+    val randomGenerator = Random
     for(_<- 1 to numberOfShips){
       var position = (randomGenerator.nextInt(height), randomGenerator.nextInt(width))
       while(!tryPosition(position, shipLength, board)){
@@ -49,7 +48,7 @@ class GameShipsServer() extends GameShips {
 
   def incrementAndCheckClients(): Unit = {
     counter = counter + 1
-    if(counter > 2){
+    if(counter >= 2){
       initializeAndSendBoards()
     }
   }
@@ -68,13 +67,11 @@ class GameShipsServer() extends GameShips {
     }
   }
 
-
   def initializeAndSendBoards(): Unit = gameClientDictionary.foreach{case (name, ref) =>
     initializeBoard(clientsBoardDictionary.apply(name))
     ref ! InitBoardMessage((width, height),clientsBoardDictionary.apply(name).keysIterator.toList, isFirst)
     isFirst = !isFirst
   }
-
 
   override def receive: Receive = {
     case GameClientCreated(name) =>
