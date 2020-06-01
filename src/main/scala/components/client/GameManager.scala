@@ -61,6 +61,7 @@ class GameManager(name: String, roomManager: ActorSelection) extends Actor {
     case Signal(s"game $command") =>
       command match{
         case "new chat" => currentRoomActor.foreach{_ ! RoomGameCreationRequest("chat")}
+        case "new ships" => currentRoomActor.foreach{_ ! RoomGameCreationRequest("ships")}
         case _ => currentGame.foreach(_ ! Signal(command))
       }
 
