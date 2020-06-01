@@ -69,7 +69,7 @@ class GameShipsServer() extends GameShips {
 
   def initializeAndSendBoards(): Unit = gameClientDictionary.foreach{case (name, ref) =>
     initializeBoard(clientsBoardDictionary.apply(name))
-    ref ! InitBoardMessage((width, height),clientsBoardDictionary.apply(name).keysIterator.toList, isFirst)
+    ref ! InitBoardMessage((width, height),clientsBoardDictionary.apply(name).keys.toList, isFirst)
     isFirst = !isFirst
   }
 
