@@ -44,11 +44,13 @@ class GameShipsClient(name: String, serverGameActor: ActorRef) extends GameShips
         case this.name =>
           enemyBoard(target._1)(target._2) = if(hit) Field.Hit else Field.Missed
           isMyTurn = Some(false)
-          printCurrentState(if(hit) "You hit enemy ship!" else "You missed :(")
+          printCurrentState((if(hit) "You hit enemy ship!" else "You missed :(") ++
+                            (if(sunk) "\nSHIP SUNK" else ""))
         case _ =>
           myBoard(target._1)(target._2) = if(hit) Field.Hit else Field.Missed
           isMyTurn = Some(true)
-          printCurrentState(if(hit) "You got hit!" else "Enemy missed")
+          printCurrentState((if(hit) "You got hit!" else "Enemy missed") ++
+                            (if(sunk) "\nSHIP SUNK" else ""))
       }
     //
     case GameEndMessage(winnerName) =>
