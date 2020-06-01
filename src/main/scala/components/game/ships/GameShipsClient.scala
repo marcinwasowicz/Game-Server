@@ -1,5 +1,98 @@
 package components.game.ships
 
-class GameShipsClient {
+import akka.actor.ActorRef
+import akka.stream.FlowMonitorState.Finished
+import components.common.Signal
+import components.game.ships
+import components.game.ships.Field.Field
+import components.game.ships.GameState.GameState
 
+import scala.collection.mutable
+
+object GameState extends Enumeration{
+  type GameState = Value
+  val WaitingForStart, InProgress, Finished = Value
+}
+
+object Field extends Enumeration{
+  type Field = Value
+  val Missed= Value(".")
+  val Hit = Value("X")
+  val Ship = Value("O")
+  val Empty = Value("_")
+}
+
+class GameShipsClient(name: String, serverGameActor: ActorRef) extends GameShips {
+  var isMyTurn: Option[Boolean] = None
+  var gameState: GameState = GameState.WaitingForStart
+  var myBoard: Array[Array[ships.Field.Value]] = Array()
+  var enemyBoard: Array[Array[ships.Field.Value]] = Array()
+
+  serverGameActor ! GameClientCreated(name)
+
+  override def receive: Receive = {
+    case Signal(s"shoot $coords") =>
+      if (isMyTurn.get) {
+        val intCoords = coords.split(" ").map(s => s.toInt)
+        serverGameActor ! ShotRequestMessage((intCoords(0), intCoords(1)))
+      }
+    case InitBoardMessage(gridSize, positions, isFirst) =>
+      initializeGame(gridSize, positions, isFirst)
+      printCurrentState("GAME STARTED!")
+    case ShotResultMessage(target, shooterName, hit, sunk) =>
+      shooterName match {
+        case name =>
+          myBoard(target._1)(target._2) = if(hit) Field.Hit else Field.Missed
+          printCurrentState(if(hit) "You hit enemy ship!" else "You missed :(")
+          isMyTurn = Some(false)
+        case _ =>
+          enemyBoard(target._1)(target._2) = if(hit) Field.Hit else Field.Missed
+          printCurrentState(if(hit) "You got hit!" else "Enemy missed")
+          isMyTurn = Some(true)
+      }
+    //
+    case GameEndMessage(winnerName) =>
+      //
+  }
+
+  def initializeGame(gridSize: (Int, Int), shipPositions: List[(Int, Int)], isFirst: Boolean): Unit = {
+    myBoard = Array.fill(gridSize._1, gridSize._2)(Field.Empty)
+    enemyBoard = Array.fill(gridSize._1, gridSize._2)(Field.Empty)
+    isMyTurn = Some(isFirst)
+    shipPositions.foreach(pos => myBoard(pos._1)(pos._2) = Field.Ship)
+    gameState = GameState.InProgress
+  }
+
+  def getBoardRepr(board :Array[Array[Field]]): Array[String] = {
+    // works for one-digit coordinates
+
+    val rows = board.length
+    val cols = board(0).length
+    var res = new Array[String](rows+2)
+
+    res(0) = "  " ++ Array.range(0, cols).map(c => c.toString).mkString("")
+    res(1) = " "*(cols+2)
+    for(r <- 0 to rows){
+      res(2+r) = ('A' to 'Z')(r).toString ++ " " ++ Array.range(0, cols).map(c => board(r)(c).toString).mkString("")
+    }
+
+    res
+  }
+
+  def printCurrentState(message: String): Unit = {
+    val myBoardRepr = getBoardRepr(myBoard)
+    val enemyBoardRepr = getBoardRepr(enemyBoard)
+    val (rows, cols) = (myBoardRepr.length, myBoardRepr(0).length)
+    val myBoardString = "My board"
+    val enemyBoardString = "Enemy board"
+    val gapWidth = 3
+    val header = myBoardString ++ " "*(cols - myBoardString.length + gapWidth) ++ enemyBoardString ++ " "*(cols-enemyBoardString.length)
+
+    println(header)
+    for(row <- 0 to rows) {
+      println(myBoardRepr(row) ++ " "*gapWidth ++ enemyBoardRepr(row))
+    }
+    println("\n")
+    println(message)
+  }
 }

@@ -5,6 +5,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import components.common._
 import components.game.chat.GameChatClient
+import components.game.ships.GameShipsClient
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -87,6 +88,9 @@ class GameManager(name: String, roomManager: ActorSelection) extends Actor {
         case "chat" =>
           println(s"Game $gameName started")
           currentGame = Some(context.actorOf(Props(new GameChatClient(name, gameActor)), actorName))
+        case "ships" =>
+          println(s"Game $gameName started")
+          currentGame = Some(context.actorOf(Props(new GameShipsClient(name, gameActor)), actorName))
       }
 
     case msg: GameMessage =>
