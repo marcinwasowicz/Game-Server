@@ -67,8 +67,8 @@ class GameShipsServer() extends GameShips {
       clientsBoardDictionary.apply(targetName).apply(target).getDamage()
       gameClientDictionary.foreach { case (_, ref) => ref ! ShotResultMessage(target, shooterName, true,
         clientsBoardDictionary.apply(targetName).apply(target).isSunk())
-        checkForWinner(shooterName, targetName)
       }
+      checkForWinner(shooterName, targetName)
     } else {
       gameClientDictionary.foreach { case (_, ref) => ref ! ShotResultMessage(target, shooterName, false, false) }
     }
