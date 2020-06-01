@@ -8,7 +8,7 @@ class GameShipsServer() extends GameShips {
 
   val width = 10
   val height= 10
-  val numberOfShips = 10
+  val numberOfShips = 1
   val shipLength = 3
 
   var clientsBoardDictionary = new mutable.HashMap[String, mutable.HashMap[(Int, Int), Ship]]()
@@ -53,6 +53,12 @@ class GameShipsServer() extends GameShips {
     }
   }
 
+  def checkForWinner(shooterName: String, targetName: String) = {
+    if(clientsBoardDictionary.apply(targetName).values.toList.forall(ship => ship.isSunk())){
+      gameClientDictionary.foreach{case(_, ref) => ref ! GameEndMessage(shooterName)}
+    }
+  }
+
   def tryShooting(target: (Int, Int), shooter: ActorRef): Unit = {
     val shooterName: String = gameClientDictionary.filter(pair => pair._2 == shooter).keys.head
     val targetName: String = gameClientDictionary.filter(pair => pair._2 != shooter).keys.head
@@ -61,6 +67,7 @@ class GameShipsServer() extends GameShips {
       clientsBoardDictionary.apply(targetName).apply(target).getDamage()
       gameClientDictionary.foreach { case (_, ref) => ref ! ShotResultMessage(target, shooterName, true,
         clientsBoardDictionary.apply(targetName).apply(target).isSunk())
+        checkForWinner(shooterName, targetName)
       }
     } else {
       gameClientDictionary.foreach { case (_, ref) => ref ! ShotResultMessage(target, shooterName, false, false) }
