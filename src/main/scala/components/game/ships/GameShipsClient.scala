@@ -41,14 +41,14 @@ class GameShipsClient(name: String, serverGameActor: ActorRef) extends GameShips
       printCurrentState("GAME STARTED!")
     case ShotResultMessage(target, shooterName, hit, sunk) =>
       shooterName match {
-        case name =>
-          myBoard(target._1)(target._2) = if(hit) Field.Hit else Field.Missed
-          printCurrentState(if(hit) "You hit enemy ship!" else "You missed :(")
-          isMyTurn = Some(false)
-        case _ =>
+        case this.name =>
           enemyBoard(target._1)(target._2) = if(hit) Field.Hit else Field.Missed
-          printCurrentState(if(hit) "You got hit!" else "Enemy missed")
+          isMyTurn = Some(false)
+          printCurrentState(if(hit) "You hit enemy ship!" else "You missed :(")
+        case _ =>
+          myBoard(target._1)(target._2) = if(hit) Field.Hit else Field.Missed
           isMyTurn = Some(true)
+          printCurrentState(if(hit) "You got hit!" else "Enemy missed")
       }
     //
     case GameEndMessage(winnerName) =>
@@ -72,7 +72,7 @@ class GameShipsClient(name: String, serverGameActor: ActorRef) extends GameShips
 
     res(0) = "  " ++ Array.range(0, cols).map(c => c.toString).mkString("")
     res(1) = " "*(cols+2)
-    for(r <- 0 to rows){
+    for(r <- 0 until rows){
       res(2+r) = ('A' to 'Z')(r).toString ++ " " ++ Array.range(0, cols).map(c => board(r)(c).toString).mkString("")
     }
 
@@ -89,10 +89,11 @@ class GameShipsClient(name: String, serverGameActor: ActorRef) extends GameShips
     val header = myBoardString ++ " "*(cols - myBoardString.length + gapWidth) ++ enemyBoardString ++ " "*(cols-enemyBoardString.length)
 
     println(header)
-    for(row <- 0 to rows) {
+    for(row <- 0 until rows) {
       println(myBoardRepr(row) ++ " "*gapWidth ++ enemyBoardRepr(row))
     }
     println("\n")
     println(message)
+    println(if(isMyTurn.get) "Make your move:" else "Waiting for opponents move")
   }
 }

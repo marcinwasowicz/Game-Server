@@ -24,7 +24,7 @@ class Room(roomId: Int, creatorName: String, creatorActor: ActorRef) extends Act
         currentGame = Some(context.actorOf(Props(new GameShipsServer()), s"game-ship-$roomId"))
         playersInRoom
           .values
-          .foreach(_ ! RoomGameCreated("ship", currentGame.get))
+          .foreach(_ ! RoomGameCreated("ships", currentGame.get))
       case _ => ()
     }
   }
