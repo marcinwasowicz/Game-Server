@@ -53,22 +53,20 @@ class GameShipsServer() extends GameShips {
     }
   }
 
-  def checkForWinner(shooterName: String, targetName: String) = {
-    if(clientsBoardDictionary.apply(targetName).values.toList.forall(ship => ship.isSunk())){
-      gameClientDictionary.foreach{case(_, ref) => ref ! GameEndMessage(shooterName)}
-    }
-  }
-
   def tryShooting(target: (Int, Int), shooter: ActorRef): Unit = {
     val shooterName: String = gameClientDictionary.filter(pair => pair._2 == shooter).keys.head
     val targetName: String = gameClientDictionary.filter(pair => pair._2 != shooter).keys.head
 
     if (clientsBoardDictionary.apply(targetName).contains(target)) {
       clientsBoardDictionary.apply(targetName).apply(target).getDamage()
-      gameClientDictionary.foreach { case (_, ref) => ref ! ShotResultMessage(target, shooterName, true,
-        clientsBoardDictionary.apply(targetName).apply(target).isSunk())
+      if(clientsBoardDictionary.apply(targetName).values.toList.forall(ship => ship.isSunk())){
+        gameClientDictionary.foreach{case(_, ref) => ref ! GameEndMessage(shooterName)}
       }
-      checkForWinner(shooterName, targetName)
+      else {
+        gameClientDictionary.foreach { case (_, ref) => ref ! ShotResultMessage(target, shooterName, true,
+          clientsBoardDictionary.apply(targetName).apply(target).isSunk())
+        }
+      }
     } else {
       gameClientDictionary.foreach { case (_, ref) => ref ! ShotResultMessage(target, shooterName, false, false) }
     }
