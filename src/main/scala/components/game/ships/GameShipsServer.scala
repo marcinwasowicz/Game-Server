@@ -18,6 +18,13 @@ class GameShipsServer(playersInRoom: mutable.HashMap[String, ActorRef]) extends 
 
   def initializeBoard(board: mutable.HashMap[(Int, Int), Ship]): Unit = {}
 
+  def incrementAndCheckClients(): Unit = {
+    counter +=1
+    if(counter > 2){
+      initializeAndSendBoards()
+    }
+  }
+
   def tryShooting(target: (Int, Int), shooter: ActorRef): Unit = {
     val shooterName: String = gameClientDictionary.filter(pair => pair._2 == shooter).keys.head
     val targetName: String = gameClientDictionary.filter(pair => pair._2 != shooter).keys.head
@@ -44,10 +51,7 @@ class GameShipsServer(playersInRoom: mutable.HashMap[String, ActorRef]) extends 
     case GameClientCreated(name) =>
       gameClientDictionary.put(name, sender())
       clientsBoardDictionary.put(name, new mutable.HashMap[(Int, Int), Ship]())
-      counter += 1
-      if(counter >= 2){
-        initializeAndSendBoards()
-      }
+      incrementAndCheckClients()
     case ShotRequestMessage(target) =>
       tryShooting(target, sender())
   }
