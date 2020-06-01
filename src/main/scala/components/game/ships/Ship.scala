@@ -1,8 +1,8 @@
 package components.game.ships
 
-class Ship(healthPoints: Int) {
+class Ship(var healthPoints: Int) {
   def getDamage() = {
-    healthPoints -= 1
+    healthPoints = healthPoints - 1
   }
 
   def isSunk(): Boolean = {
