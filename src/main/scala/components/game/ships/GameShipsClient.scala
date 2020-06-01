@@ -54,7 +54,9 @@ class GameShipsClient(name: String, serverGameActor: ActorRef) extends GameShips
       }
     //
     case GameEndMessage(winnerName) =>
-      //
+      isMyTurn = None
+      gameState = GameState.Finished
+      printCurrentState(s"$winnerName won!")
   }
 
   def initializeGame(gridSize: (Int, Int), shipPositions: List[(Int, Int)], isFirst: Boolean): Unit = {
@@ -96,6 +98,10 @@ class GameShipsClient(name: String, serverGameActor: ActorRef) extends GameShips
     }
     println("\n")
     println(message)
-    println(if(isMyTurn.get) "Make your move:" else "Waiting for opponents move")
+    this.gameState match {
+      case GameState.WaitingForStart => println("Waiting for start...")
+      case GameState.InProgress => println(if(isMyTurn.get) "Make your move:" else "Waiting for enemy...")
+      case GameState.Finished => println("Game finished")
+    }
   }
 }
