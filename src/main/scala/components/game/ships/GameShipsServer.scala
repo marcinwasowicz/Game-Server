@@ -62,20 +62,26 @@ class GameShipsServer() extends GameShips {
     }
   }
 
+  def shootShip(targetBoard: mutable.HashMap[(Int, Int), Ship], target: (Int,Int), shooterName: String): Unit = {
+    val targetShip = targetBoard.apply(target)
+    targetShip.getDamage()
+    clientDictionary.values.foreach(ref => ref ! ShotResultMessage(target, shooterName, true,targetShip.isSunk()))
+  }
+
+  def checkForWinner(targetBoard: mutable.HashMap[(Int, Int), Ship], shooterName: String): Unit = {
+    if(targetBoard.values.toList.forall(ship => ship.isSunk())){
+      clientDictionary.values.foreach(ref => ref ! GameEndMessage(shooterName))
+    }
+  }
+
   def tryShooting(target: (Int, Int), shooter: ActorRef): Unit = {
     val shooterName: String = clientDictionary.filter(pair => pair._2 == shooter).keys.head
     val targetName: String = clientDictionary.filter(pair => pair._2 != shooter).keys.head
     val targetBoard = clientBoards.apply(targetName)
 
     if (targetBoard.contains(target)) {
-      val targetShip = targetBoard.apply(target)
-      targetShip.getDamage()
-      if(targetBoard.values.toList.forall(ship => ship.isSunk())){
-        clientDictionary.values.foreach(ref => ref ! GameEndMessage(shooterName))
-      }
-      else {
-        clientDictionary.values.foreach(ref => ref ! ShotResultMessage(target, shooterName, true,targetShip.isSunk()))
-      }
+      shootShip(targetBoard, target, shooterName)
+      checkForWinner(targetBoard, shooterName)
     }
     else {
       clientDictionary.values.foreach(ref => ref ! ShotResultMessage(target, shooterName, false, false))
