@@ -1,0 +1,6 @@
+[0m[[0m[33mwarn[0m] [0m[0m/home/pinio/Studia/ScalaProjekt/Game-Server/src/main/scala/components/client/ClientApp.scala:29:17: match may not be exhaustive.[0m
+[0m[[0m[33mwarn[0m] [0m[0mIt would fail on the following inputs: (_ : components.common.GameMessage), (_ : components.common.GuiMessage), Listing(_), ListingRequest(_), LoginFailure(_), LoginSuccess(_), Logout(_), RoomCreated(_, _), RoomCreationProblem(_, _), RoomCreationRequest(_), RoomGameCreated(_, _), RoomGameCreationRequest(_), RoomJoinProblem(_, _), RoomJoinRequest(_, _), RoomJoined(_, _), RoomLeft(_), RoomListing(_, _), RoomListingRequest(_), Start(_)[0m
+[0m[[0m[33mwarn[0m] [0m[0m                loginScreen match {[0m
+[0m[[0m[33mwarn[0m] [0m[0m                ^[0m
+[0m[[0m[33mwarn[0m] [0m[0mthere was one unchecked warning; re-run with -unchecked for details[0m
+[0m[[0m[33mwarn[0m] [0m[0mtwo warnings found[0m

@@ -1,15 +1,18 @@
 package components.client
 
 import akka.actor.{ActorSystem, Props}
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import components.common.Start
+import components.server.ServerApp.serverConfiguration
+
+import scala.io.StdIn
 
 object ClientApp extends App {
-    val clientConfiguration = ConfigFactory.load.getConfig("ClientConfig")
-    val serverPort = ConfigFactory.load.getConfig("ServerConfig").getInt("akka.remote.artery.canonical.port")
+    var clientConfiguration = ConfigFactory.load.getConfig("ClientConfig")
+    val servAddress = StdIn.readLine("Server IP Address: ")
     val clientSystem = ActorSystem("ClientSystem", clientConfiguration)
-    val clientManager = clientSystem.actorSelection(s"akka://ServerSystem@127.0.0.1:$serverPort/user/server/client-manager")
-    val roomManager = clientSystem.actorSelection(s"akka://ServerSystem@127.0.0.1:$serverPort/user/server/room-manager")
+    val clientManager = clientSystem.actorSelection(s"akka://ServerSystem@$servAddress/user/server/client-manager")
+    val roomManager = clientSystem.actorSelection(s"akka://ServerSystem@$servAddress/user/server/room-manager")
     val client = clientSystem.actorOf(Props(new Client(clientManager, roomManager)), "client")
     client ! Start()
 }
