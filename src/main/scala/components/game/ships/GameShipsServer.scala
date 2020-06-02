@@ -1,7 +1,6 @@
 package components.game.ships
 
 import akka.actor.ActorRef
-
 import scala.collection.mutable
 import scala.util.Random
 class GameShipsServer() extends GameShips {
@@ -13,7 +12,7 @@ class GameShipsServer() extends GameShips {
 
   var clientBoards = new mutable.HashMap[String, mutable.HashMap[(Int, Int), Ship]]()
   var clientDictionary = new mutable.HashMap[String, ActorRef]()
-  var whoIsFirst = new mutable.HashMap[String, Boolean]()
+  var isFirst = new mutable.HashMap[String, Boolean]()
 
   def checkRow(position: (Int, Int), diff: (Int, Int), length: Int, dict: mutable.HashMap[(Int, Int), Ship]): Boolean =
     (0 until length).toList.forall(num => !dict.contains((position._1 + num*diff._1, position._2+num*diff._2)))
@@ -43,7 +42,7 @@ class GameShipsServer() extends GameShips {
     (1 to numOfShips).foreach( _ => findPosition(length, board))
 
   def sendBoard(keyValPair: (String, ActorRef)): Unit ={
-    keyValPair._2 ! InitBoardMessage((height, width), clientBoards.apply(keyValPair._1).keys.toList,whoIsFirst.apply(keyValPair._1))
+    keyValPair._2 ! InitBoardMessage((height, width), clientBoards.apply(keyValPair._1).keys.toList,isFirst.apply(keyValPair._1))
   }
 
   def initializeAndSendBoards(): Unit = {
@@ -55,11 +54,11 @@ class GameShipsServer() extends GameShips {
     clientDictionary.put(name, ref)
     clientBoards.put(name, new mutable.HashMap[(Int, Int), Ship]())
     if(clientDictionary.size >= 2){
-      whoIsFirst.put(name, false)
+      isFirst.put(name, false)
       initializeAndSendBoards()
     }
     else{
-      whoIsFirst.put(name, true)
+      isFirst.put(name, true)
     }
   }
 
