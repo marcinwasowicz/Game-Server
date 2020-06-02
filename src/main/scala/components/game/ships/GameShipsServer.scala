@@ -17,15 +17,14 @@ class GameShipsServer() extends GameShips {
   def checkRow(position: (Int, Int), diff: (Int, Int), length: Int, dict: mutable.HashMap[(Int, Int), Ship]): Boolean =
     (0 until length).toList.forall(num => !dict.contains((position._1 + num*diff._1, position._2+num*diff._2)))
 
-  def fillRow(position: (Int, Int), diff: (Int, Int), length: Int, dict: mutable.HashMap[(Int, Int), Ship], ship: Ship): Unit = {
+  def fillRow(position: (Int, Int), diff: (Int, Int), length: Int, dict: mutable.HashMap[(Int, Int), Ship], ship: Ship): Unit =
     (0 until length).toList.foreach(num => dict.put((position._1 + num*diff._1, position._2+num*diff._2), ship))
-  }
 
   def checkBorders(position: (Int, Int), length: Int, direction: (Int, Int)): Boolean =
     position._1+(length-1)*direction._1 >= 0 && position._1+(length-1)*direction._1 < height &&
     position._2+(length-1)*direction._2 >=0 && position._2+(length-1)*direction._2 < width
 
-  def tryPosition(position: (Int, Int), length: Int, dict: mutable.HashMap[(Int, Int), Ship]): Boolean = {
+  def tryPosition(position: (Int, Int), length: Int, dict: mutable.HashMap[(Int, Int), Ship]): Boolean =
     List((-1, 0), (1, 0), (0, 1), (0, -1)).
       filter(direction => checkBorders(position, length, direction)).
         foldLeft(false)((acc, direction) =>
@@ -33,7 +32,6 @@ class GameShipsServer() extends GameShips {
             fillRow(position, direction, length, dict, new Ship(length))
             !acc
           } else acc)
-  }
 
   def findPosition(length: Int, board: mutable.HashMap[(Int, Int), Ship]): Unit =
     while(!tryPosition((Random.nextInt(height), Random.nextInt(width)), length, board)){}
@@ -41,9 +39,8 @@ class GameShipsServer() extends GameShips {
   def initializeBoard(board: mutable.HashMap[(Int, Int), Ship], numOfShips: Int, length: Int): Unit =
     (1 to numOfShips).foreach( _ => findPosition(length, board))
 
-  def sendBoard(keyValPair: (String, ActorRef)): Unit ={
+  def sendBoard(keyValPair: (String, ActorRef)): Unit =
     keyValPair._2 ! InitBoardMessage((height, width), clientBoards.apply(keyValPair._1).keys.toList,isFirst.apply(keyValPair._1))
-  }
 
   def initializeAndSendBoards(): Unit = {
     clientBoards.foreach(keyValPair => initializeBoard(clientBoards.apply(keyValPair._1), numberOfShips, shipLength))
@@ -68,11 +65,10 @@ class GameShipsServer() extends GameShips {
     clientDictionary.values.foreach(ref => ref ! ShotResultMessage(target, shooterName, true,targetShip.isSunk()))
   }
 
-  def checkForWinner(targetBoard: mutable.HashMap[(Int, Int), Ship], shooterName: String): Unit = {
+  def checkForWinner(targetBoard: mutable.HashMap[(Int, Int), Ship], shooterName: String): Unit =
     if(targetBoard.values.toList.forall(ship => ship.isSunk())){
       clientDictionary.values.foreach(ref => ref ! GameEndMessage(shooterName))
     }
-  }
 
   def tryShooting(target: (Int, Int), shooter: ActorRef): Unit = {
     val shooterName: String = clientDictionary.filter(pair => pair._2 == shooter).keys.head
